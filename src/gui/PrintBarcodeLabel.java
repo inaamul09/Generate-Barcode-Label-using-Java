@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class PrintBarcodeLabel {
+
     private JComboBox<String> printTypeSelector;
     private JTextField barcodeField;
     private JTextField barcodePrintQtyField;
@@ -16,7 +17,7 @@ public class PrintBarcodeLabel {
     private JCheckBox includeProductNameCheckbox;
     private JCheckBox includePriceCheckbox;
     private JCheckBox includePrintedDateCheckbox;
-    
+
     // Sample data
     private String businessName = "My Business Store";
     private String productName = "Sample Product";
@@ -24,6 +25,7 @@ public class PrintBarcodeLabel {
 
     // Paper configuration class
     class PaperConfig {
+
         String name;
         double width; // in points (1mm = 2.83465 points)
         double height;
@@ -31,7 +33,7 @@ public class PrintBarcodeLabel {
         int rows;
         double labelWidth;
         double labelHeight;
-        
+
         PaperConfig(String name, double widthMM, double heightMM, int columns, int rows) {
             this.name = name;
             this.width = mmToPoints(widthMM);
@@ -42,16 +44,16 @@ public class PrintBarcodeLabel {
             this.labelHeight = this.height / rows;
         }
     }
-    
+
     private PaperConfig[] paperConfigs = {
-        new PaperConfig("A4 16up 105mm x 37mm", 210, 297, 2, 8),  // 16 labels
+        new PaperConfig("A4 16up 105mm x 37mm", 210, 297, 2, 8), // 16 labels
         new PaperConfig("A4 21up 70mm x 42.4mm", 210, 297, 3, 7), // 21 labels
-        new PaperConfig("A4 24up 70mm x 37mm", 210, 297, 3, 8),   // 24 labels
+        new PaperConfig("A4 24up 70mm x 37mm", 210, 297, 3, 8), // 24 labels
         new PaperConfig("A4 30up 70mm x 299.7mm", 210, 297, 3, 10), // 30 labels
         new PaperConfig("A4 44up 48.5mm x 25.4mm", 210, 297, 4, 11), // 44 labels
-        new PaperConfig("A4 56up 52.5mm x 21mm", 210, 297, 4, 14),  // 56 labels
-        new PaperConfig("A4 65up 38mm x 21mm", 210, 297, 5, 13),    // 65 labels
-        new PaperConfig("A4 68up 48mm x 16.6mm", 210, 297, 4, 17)   // 68 labels
+        new PaperConfig("A4 56up 52.5mm x 21mm", 210, 297, 4, 14), // 56 labels
+        new PaperConfig("A4 65up 38mm x 21mm", 210, 297, 5, 13), // 65 labels
+        new PaperConfig("A4 68up 48mm x 16.6mm", 210, 297, 4, 17) // 68 labels
     };
 
     public PrintBarcodeLabel() {
@@ -74,7 +76,7 @@ public class PrintBarcodeLabel {
     private void initializeOtherComponents() {
         barcodeField = new JTextField("123456789012", 15);
         barcodePrintQtyField = new JTextField("1", 5);
-        
+
         includeBusinessNameCheckbox = new JCheckBox("Include Business Name", true);
         includeProductNameCheckbox = new JCheckBox("Include Product Name", true);
         includePriceCheckbox = new JCheckBox("Include Price", true);
@@ -88,7 +90,7 @@ public class PrintBarcodeLabel {
 
         int totalLabels = Integer.parseInt(barcodePrintQtyField.getText());
         String selectedPaperType = (String) printTypeSelector.getSelectedItem();
-        
+
         // Find the selected paper configuration
         PaperConfig selectedConfig = null;
         for (PaperConfig config : paperConfigs) {
@@ -97,7 +99,7 @@ public class PrintBarcodeLabel {
                 break;
             }
         }
-        
+
         if (selectedConfig == null) {
             JOptionPane.showMessageDialog(null, "Invalid paper type selected");
             return;
@@ -105,95 +107,96 @@ public class PrintBarcodeLabel {
 
         // Create printer job
         PrinterJob printerJob = PrinterJob.getPrinterJob();
-        
+
         // Create book for multiple pages
         Book book = new Book();
         PageFormat pageFormat = createPageFormat(selectedConfig);
-        
+
         int labelsPerPage = selectedConfig.columns * selectedConfig.rows;
         int totalPages = (int) Math.ceil((double) totalLabels / labelsPerPage);
-        
+
         // Add pages based on total labels needed
         for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
             int startLabel = pageIndex * labelsPerPage;
             int endLabel = Math.min(startLabel + labelsPerPage, totalLabels);
             book.append(new BarcodePrintable(selectedConfig, startLabel, endLabel), pageFormat);
         }
-        
+
         printerJob.setPageable(book);
 
         try {
             printerJob.print();
-            JOptionPane.showMessageDialog(null, 
-                "Printed " + totalLabels + " barcode label(s) successfully!");
+            JOptionPane.showMessageDialog(null,
+                    "Printed " + totalLabels + " barcode label(s) successfully!");
         } catch (PrinterException ex) {
-            JOptionPane.showMessageDialog(null, 
-                "Printing failed: " + ex.getMessage(), 
-                "Print Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Printing failed: " + ex.getMessage(),
+                    "Print Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     // Inner class for printable content
     class BarcodePrintable implements Printable {
+
         private PaperConfig config;
         private int startLabel;
         private int endLabel;
-        
+
         public BarcodePrintable(PaperConfig config, int startLabel, int endLabel) {
             this.config = config;
             this.startLabel = startLabel;
             this.endLabel = endLabel;
         }
-        
+
         @Override
-        public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) 
+        public int print(Graphics graphics, PageFormat pageFormat, int pageIndex)
                 throws PrinterException {
             Graphics2D g2d = (Graphics2D) graphics;
             g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
 
             // Set up fonts and colors
             g2d.setColor(Color.BLACK);
-            
+
             // Draw all labels for this page
             drawLabelsOnPage(g2d);
 
             return PAGE_EXISTS;
         }
-        
+
         private void drawLabelsOnPage(Graphics2D g2d) {
             int labelsPerPage = config.columns * config.rows;
             int labelsToDraw = endLabel - startLabel;
-            
+
             for (int labelIndex = 0; labelIndex < labelsToDraw; labelIndex++) {
                 int row = labelIndex / config.columns;
                 int col = labelIndex % config.columns;
-                
+
                 double x = col * config.labelWidth;
                 double y = row * config.labelHeight;
-                
+
                 drawSingleLabel(g2d, x, y, config.labelWidth, config.labelHeight);
             }
         }
-        
+
         private void drawSingleLabel(Graphics2D g2d, double x, double y, double width, double height) {
             // Increased margins for each label - 10 points on all sides
-            int margin = 10;
+            int margin = 8;
             int labelX = (int) x + margin;
             int labelY = (int) y + margin;
-            int labelWidth = (int) width - (margin * 2);
-            int labelHeight = (int) height - (margin * 2);
-            
+            int labelWidth = (int) width - (margin * 1);
+            int labelHeight = (int) height - (margin * 1);
+
             // Get data based on user selection
             String barcode = barcodeField.getText();
             String businessNameText = includeBusinessNameCheckbox.isSelected() ? businessName : "";
             String productNameText = includeProductNameCheckbox.isSelected() ? productName : "";
             String priceText = includePriceCheckbox.isSelected() ? price : "";
-            String printedDate = includePrintedDateCheckbox.isSelected() ? 
-                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) : "";
+            String printedDate = includePrintedDateCheckbox.isSelected()
+                    ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) : "";
 
             // Calculate starting position
             int currentY = labelY + 8;
-            
+
             // Draw business name (if selected)
             if (!businessNameText.isEmpty()) {
                 Font businessFont = new Font("Arial", Font.BOLD, getFontSizeForHeight(labelHeight / 15));
@@ -236,48 +239,50 @@ public class PrintBarcodeLabel {
                 drawCenteredString(g2d, printedDate, labelX, currentY, labelWidth);
             }
         }
-        
+
         private void drawCenteredString(Graphics2D g2d, String text, int x, int y, int width) {
             FontMetrics fm = g2d.getFontMetrics();
             int textWidth = fm.stringWidth(text);
             int textX = x + (width - textWidth) / 2;
             g2d.drawString(text, textX, y);
         }
-        
+
         private int getStringHeight(Graphics2D g2d, String text) {
             FontMetrics fm = g2d.getFontMetrics();
             return fm.getHeight();
         }
-        
+
         private int getFontSizeForHeight(double desiredHeight) {
             return Math.max(6, (int) (desiredHeight * 0.7)); // Reduced multiplier
         }
-        
+
         private void drawCode128Barcode(Graphics2D g2d, String barcode, int x, int y, int width, int height) {
-            // Simple Code 128 simulation with proper start/stop patterns
-            int barcodeWidth = width - 20; // Reduced width for better margins
-            int barcodeX = x + 10;
-            
+            // 🔹 Increase barcode height for better readability
+            int barcodeHeight = (int) (height * 2.5); // Previously 1.0x; now taller
+
+            // 🔹 Reduce overall barcode width to avoid mixing
+            int barcodeWidth = (int) (width * 0.75); // 75% of label width for spacing
+            int barcodeX = x + (width - barcodeWidth) / 2; // Center barcode horizontally
+
+            // 🔹 Generate barcode pattern
             String code128Pattern = generateCode128Pattern(barcode);
             int moduleWidth = barcodeWidth / code128Pattern.length();
-            
-            // Ensure module width is at least 1
-            moduleWidth = Math.max(1, moduleWidth);
-            
+            moduleWidth = Math.max(1, moduleWidth); // Ensure minimum bar width
+
+            // 🔹 Draw bars
             g2d.setColor(Color.BLACK);
-            
             for (int i = 0; i < code128Pattern.length(); i++) {
                 if (code128Pattern.charAt(i) == '1') {
                     int barX = barcodeX + (i * moduleWidth);
-                    g2d.fillRect(barX, y, moduleWidth, height);
+                    g2d.fillRect(barX, y, moduleWidth, barcodeHeight);
                 }
             }
         }
-        
+
         private String generateCode128Pattern(String data) {
             // Code 128 character encoding (simplified version)
             String pattern = "11010010000"; // Start code B
-            
+
             // Encode each character
             for (char c : data.toCharArray()) {
                 if (c >= '0' && c <= '9') {
@@ -290,7 +295,7 @@ public class PrintBarcodeLabel {
                     pattern += getCode128CharPattern(0); // Space
                 }
             }
-            
+
             // Calculate checksum
             int checksum = 104; // Start B code value
             for (int i = 0; i < data.length(); i++) {
@@ -307,13 +312,13 @@ public class PrintBarcodeLabel {
             }
             checksum = checksum % 103;
             pattern += getCode128CharPattern(checksum);
-            
+
             // Stop code
             pattern += "1100011101011";
-            
+
             return pattern;
         }
-        
+
         private String getCode128CharPattern(int value) {
             String[] patterns = {
                 "11011001100", "11001101100", "11001100110", "10010011000", "10010001100",
@@ -339,7 +344,7 @@ public class PrintBarcodeLabel {
                 "10111101110", "11101011110", "11110101110", "11010000100", "11010010000",
                 "11010011100", "11000111010"
             };
-            
+
             if (value >= 0 && value < patterns.length) {
                 return patterns[value];
             }
@@ -350,10 +355,10 @@ public class PrintBarcodeLabel {
     private PageFormat createPageFormat(PaperConfig config) {
         PageFormat format = new PageFormat();
         Paper paper = new Paper();
-        
+
         paper.setSize(config.width, config.height);
         paper.setImageableArea(0, 0, config.width, config.height);
-        
+
         format.setPaper(paper);
         format.setOrientation(PageFormat.PORTRAIT);
         return format;
@@ -365,31 +370,31 @@ public class PrintBarcodeLabel {
 
     private boolean validateInputs() {
         if (printTypeSelector.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(null, 
-                "Please select a paper type", 
-                "Validation Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Please select a paper type",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
         if (barcodeField.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, 
-                "Please enter a barcode", 
-                "Validation Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Please enter a barcode",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
         try {
             int qty = Integer.parseInt(barcodePrintQtyField.getText());
             if (qty <= 0) {
-                JOptionPane.showMessageDialog(null, 
-                    "Print quantity must be greater than 0", 
-                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(null,
+                        "Print quantity must be greater than 0",
+                        "Validation Error", JOptionPane.WARNING_MESSAGE);
                 return false;
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, 
-                "Please enter a valid print quantity", 
-                "Validation Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Please enter a valid print quantity",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
@@ -404,38 +409,46 @@ public class PrintBarcodeLabel {
         gbc.anchor = GridBagConstraints.WEST;
 
         // Row 0: Barcode
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         panel.add(new JLabel("Barcode:"), gbc);
         gbc.gridx = 1;
         panel.add(barcodeField, gbc);
 
         // Row 1: Print Quantity
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         panel.add(new JLabel("Print Quantity:"), gbc);
         gbc.gridx = 1;
         panel.add(barcodePrintQtyField, gbc);
 
         // Row 2-5: Checkboxes for selection
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
         panel.add(includeBusinessNameCheckbox, gbc);
-        
+
         gbc.gridy = 3;
         panel.add(includeProductNameCheckbox, gbc);
-        
+
         gbc.gridy = 4;
         panel.add(includePriceCheckbox, gbc);
-        
+
         gbc.gridy = 5;
         panel.add(includePrintedDateCheckbox, gbc);
 
         // Row 6: Paper Type
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 1;
         panel.add(new JLabel("Paper Type:"), gbc);
         gbc.gridx = 1;
         panel.add(printTypeSelector, gbc);
 
         // Row 7: Print Button
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         JButton printButton = new JButton("Print Barcode");
         printButton.addActionListener(e -> printBarcodeLabel());
@@ -461,11 +474,11 @@ public class PrintBarcodeLabel {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Barcode Printing System");
             PrintBarcodeLabel printingSystem = new PrintBarcodeLabel();
-            
+
             printingSystem.setBusinessName("My Super Store");
             printingSystem.setProductName("Premium Product XYZ");
             printingSystem.setPrice("$45.99");
-            
+
             frame.add(printingSystem.createPrintingPanel());
             frame.pack();
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
