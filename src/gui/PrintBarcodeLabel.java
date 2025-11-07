@@ -183,8 +183,8 @@ public class PrintBarcodeLabel {
             int margin = 8;
             int labelX = (int) x + margin;
             int labelY = (int) y + margin;
-            int labelWidth = (int) width - (margin * 1);
-            int labelHeight = (int) height - (margin * 1);
+            int labelWidth = (int) width - (margin * 2); // Fixed: should be *2 for both sides
+            int labelHeight = (int) height - (margin * 2); // Fixed: should be *2 for both top and bottom
 
             // Get data based on user selection
             String barcode = barcodeField.getText();
@@ -221,22 +221,45 @@ public class PrintBarcodeLabel {
                 currentY += getStringHeight(g2d, priceText) + 5;
             }
 
-            // Draw barcode lines (much smaller - about 20% of label height)
-            int barcodeHeight = (int) (labelHeight * 0.2);
+            // Draw barcode lines - FIXED: Use consistent height calculation
+            int barcodeHeight = (int) (labelHeight * 0.25); // Slightly increased but reasonable
             drawCode128Barcode(g2d, barcode, labelX, currentY, labelWidth, barcodeHeight);
-            currentY += barcodeHeight + 3;
+            currentY += barcodeHeight + 5; // Increased spacing after barcode
 
             // Draw barcode number BELOW the barcode
             Font barcodeFont = new Font("Arial", Font.PLAIN, getFontSizeForHeight(labelHeight / 20));
             g2d.setFont(barcodeFont);
             drawCenteredString(g2d, barcode, labelX, currentY, labelWidth);
-            currentY += getStringHeight(g2d, barcode) + 3;
+            currentY += getStringHeight(g2d, barcode) + 5;
 
             // Draw printed date (if selected)
             if (!printedDate.isEmpty()) {
                 Font dateFont = new Font("Arial", Font.PLAIN, getFontSizeForHeight(labelHeight / 22));
                 g2d.setFont(dateFont);
                 drawCenteredString(g2d, printedDate, labelX, currentY, labelWidth);
+            }
+        }
+
+        private void drawCode128Barcode(Graphics2D g2d, String barcode, int x, int y, int width, int height) {
+            // Use the height parameter directly - no double calculation
+            int barcodeHeight = height;
+
+            // Reduce overall barcode width to avoid mixing with adjacent labels
+            int barcodeWidth = (int) (width * 0.85); // 85% of label width for spacing
+            int barcodeX = x + (width - barcodeWidth) / 2; // Center barcode horizontally
+
+            // Generate barcode pattern
+            String code128Pattern = generateCode128Pattern(barcode);
+            int moduleWidth = barcodeWidth / code128Pattern.length();
+            moduleWidth = Math.max(1, moduleWidth); // Ensure minimum bar width
+
+            // Draw bars
+            g2d.setColor(Color.BLACK);
+            for (int i = 0; i < code128Pattern.length(); i++) {
+                if (code128Pattern.charAt(i) == '1') {
+                    int barX = barcodeX + (i * moduleWidth);
+                    g2d.fillRect(barX, y, moduleWidth, barcodeHeight);
+                }
             }
         }
 
@@ -256,28 +279,7 @@ public class PrintBarcodeLabel {
             return Math.max(6, (int) (desiredHeight * 0.7)); // Reduced multiplier
         }
 
-        private void drawCode128Barcode(Graphics2D g2d, String barcode, int x, int y, int width, int height) {
-            // 🔹 Increase barcode height for better readability
-            int barcodeHeight = (int) (height * 2.5); // Previously 1.0x; now taller
-
-            // 🔹 Reduce overall barcode width to avoid mixing
-            int barcodeWidth = (int) (width * 0.75); // 75% of label width for spacing
-            int barcodeX = x + (width - barcodeWidth) / 2; // Center barcode horizontally
-
-            // 🔹 Generate barcode pattern
-            String code128Pattern = generateCode128Pattern(barcode);
-            int moduleWidth = barcodeWidth / code128Pattern.length();
-            moduleWidth = Math.max(1, moduleWidth); // Ensure minimum bar width
-
-            // 🔹 Draw bars
-            g2d.setColor(Color.BLACK);
-            for (int i = 0; i < code128Pattern.length(); i++) {
-                if (code128Pattern.charAt(i) == '1') {
-                    int barX = barcodeX + (i * moduleWidth);
-                    g2d.fillRect(barX, y, moduleWidth, barcodeHeight);
-                }
-            }
-        }
+        
 
         private String generateCode128Pattern(String data) {
             // Code 128 character encoding (simplified version)
