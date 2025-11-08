@@ -241,17 +241,24 @@ public class PrintBarcodeLabel {
         }
 
         private void drawCode128Barcode(Graphics2D g2d, String barcode, int x, int y, int width, int height) {
-            // Use the height parameter directly - no double calculation
             int barcodeHeight = height;
 
-            // Reduce overall barcode width to avoid mixing with adjacent labels
-            int barcodeWidth = (int) (width * 0.85); // 85% of label width for spacing
-            int barcodeX = x + (width - barcodeWidth) / 2; // Center barcode horizontally
+            // 🔹 Reduce barcode width dynamically based on label width
+            double widthRatio = width > 150 ? 0.85 : width > 100 ? 0.75 : 0.65;
+            int barcodeWidth = (int) (width * widthRatio);
+            int barcodeX = x + (width - barcodeWidth) / 2; // Centered
 
             // Generate barcode pattern
             String code128Pattern = generateCode128Pattern(barcode);
-            int moduleWidth = barcodeWidth / code128Pattern.length();
-            moduleWidth = Math.max(1, moduleWidth); // Ensure minimum bar width
+
+            // 🔹 Ensure minimum module width = 1, max = 2 px
+            int moduleWidth = Math.max(1, Math.min(2, barcodeWidth / code128Pattern.length()));
+
+            // 🔹 Ensure barcode doesn’t overflow label width
+            int maxBars = barcodeWidth / moduleWidth;
+            if (code128Pattern.length() > maxBars) {
+                code128Pattern = code128Pattern.substring(0, maxBars);
+            }
 
             // Draw bars
             g2d.setColor(Color.BLACK);
@@ -278,8 +285,6 @@ public class PrintBarcodeLabel {
         private int getFontSizeForHeight(double desiredHeight) {
             return Math.max(6, (int) (desiredHeight * 0.7)); // Reduced multiplier
         }
-
-        
 
         private String generateCode128Pattern(String data) {
             // Code 128 character encoding (simplified version)
