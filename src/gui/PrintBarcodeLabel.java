@@ -483,7 +483,7 @@
                 PrintBarcodeLabel printingSystem = new PrintBarcodeLabel();
 
                 printingSystem.setBusinessName("Avinam PharmaX (PVT) LTD");
-                printingSystem.setProductName("Anchor Full Cream Milk Powder 400g Test Test Test");
+                printingSystem.setProductName("Anchor Full Cream Milk Powder 400g");
                 printingSystem.setPrice("Rs.1250.00");
 
                 frame.add(printingSystem.createPrintingPanel());
