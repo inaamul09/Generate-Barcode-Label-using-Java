@@ -484,7 +484,7 @@ public class PrintLargerBarcodes {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Barcode Printing System");
-            PrintBarcodeLabel printingSystem = new PrintBarcodeLabel();
+            PrintLargerBarcodes printingSystem = new PrintLargerBarcodes();
 
             printingSystem.setBusinessName("Avinam PharmaX (PVT) LTD");
             printingSystem.setProductName("Anchor Full Cream Milk Powder 400g");
