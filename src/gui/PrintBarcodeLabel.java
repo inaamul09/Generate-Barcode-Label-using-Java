@@ -46,7 +46,7 @@
         }
 
         private PaperConfig[] paperConfigs = {
-            new PaperConfig("A4 16up 105mm x 37mm", 210, 297, 2, 8), // 16 labels
+
             new PaperConfig("A4 21up 70mm x 42.4mm", 210, 297, 3, 7), // 21 labels
             new PaperConfig("A4 24up 70mm x 37mm", 210, 297, 3, 8), // 24 labels
             new PaperConfig("A4 30up 70mm x 299.7mm", 210, 297, 3, 10), // 30 labels

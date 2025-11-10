@@ -47,7 +47,7 @@ public class PrintLargerBarcodes {
     }
 
     private PaperConfig[] paperConfigs = {
-       
+  
         new PaperConfig("A4 21up 70mm x 42.4mm", 210, 297, 3, 7), // 21 labels
         new PaperConfig("A4 24up 70mm x 37mm", 210, 297, 3, 8), // 24 labels
         new PaperConfig("A4 30up 70mm x 299.7mm", 210, 297, 3, 10), // 30 labels
@@ -272,13 +272,14 @@ public class PrintLargerBarcodes {
             }
         }
 
-        private void drawCenteredString(Graphics2D g2d, String text, double x, double y, double width) {
+  private void drawCenteredString(Graphics2D g2d, String text, double x, double y, double width) {
     FontMetrics fm = g2d.getFontMetrics();
     double textWidth = fm.stringWidth(text);
     double textX = x + (width - textWidth) / 2.0;
     double textY = y + fm.getAscent(); // ensures consistent vertical alignment
     g2d.drawString(text, (float) textX, (float) textY);
 }
+
 
 
         private int getStringHeight(Graphics2D g2d, String text) {
